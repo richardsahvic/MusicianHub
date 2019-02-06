@@ -8,7 +8,7 @@ import (
 )
 
 func InitConnection() *sqlx.DB {
-	db, err := sqlx.Connect("mysql", "dev:dev@(localhost:3306)/myapp?parseTime=true")
+	db, err := sqlx.Connect("mysql", "SYMPO:sympo@(localhost:3306)/myapp?parseTime=true")
 	if err != nil {
 		log.Fatalln("Failed to connect to database,    ", err)
 	}
