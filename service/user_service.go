@@ -4,14 +4,13 @@ import (
 	"fmt"
 	"log"
 	"regexp"
-	"strconv"
 	"time"
 
 	"repo"
 
 	"github.com/bwmarrin/snowflake"
 	"github.com/dgrijalva/jwt-go"
-	"golang.org/x/crypto/bcrypt"
+	"github.com/jankuo/xxtea/xxtea"
 )
 
 type userService struct{
@@ -32,22 +31,23 @@ func at(t time.Time, f func()) {
 	jwt.TimeFunc = time.Now
 }
 
-func NewUserService(userRepo repo.BankRepository) UserService {
+func NewUserService(userRepo repo.AppRepository) UserService {
 	s := userService{userRepo: userRepo}
 	return &s
 }
 
-func HashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
-	return string(bytes), err
+func EncryptPassword(password string) (string) {
+	key := "userpass"
+	encrypted := xxtea.Encrypt([]byte(password), []byte(key))
+	return string(encrypted)
 }
 
-func CheckPasswordHash(password, hash string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	return err == nil
-}
+// func CheckPasswordHash(password, hash string) bool {
+// 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+// 	return err == nil
+// }
 
-func (s *userService) Register(userRepo repo.UserDetail) (success bool, err error) {
+func (s *userService) Register(userRegister repo.UserDetail) (success bool, err error) {
 	success = false
 
 	reEmail := regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
@@ -73,9 +73,9 @@ func (s *userService) Register(userRepo repo.UserDetail) (success bool, err erro
 		return
 	}
 
-	userRegister.Password, err = HashPassword(userRegister.Password)
-	if err != nil {
-		log.Println("Failed encrypting password,  ", err)
+	userRegister.Password = EncryptPassword(userRegister.Password)
+	if userRegister.Password == "" {
+		log.Println("Failed encrypting password")
 		return
 	}
 

@@ -37,10 +37,10 @@ func (db *userRepository) MustPrepareNamedStmt(query string) *sqlx.NamedStmt {
 
 func NewRepository(db *sqlx.DB) AppRepository {
 	r := userRepository{conn: db}
-	r.findIDStmt = r.MustPrepareStmt("SELECT * FROM sympodb.user_detail WHERE id=?")
-	r.findEmailStmt = r.MustPrepareStmt("SELECT * FROM sympodb.user_detail WHERE email=?")
-	r.findUsernameStmt = r.MustPrepareStmt("SELECT * FROM sympodb.user_detail WHERE username=?")
-	r.insertNewUserStmt = r.MustPrepareNamedStmt("INSERT INTO mybank.user_detail (id, email, username, password, name, gender, birthdate, bio, role) VALUES (:user_id, :email, :username, :password, :name. :gender, :birthdate, :bio, :role)")
+	r.findIDStmt = r.MustPrepareStmt("SELECT * FROM musiciandb.user_detail WHERE id=?")
+	r.findEmailStmt = r.MustPrepareStmt("SELECT * FROM musiciandb.user_detail WHERE email=?")
+	r.findUsernameStmt = r.MustPrepareStmt("SELECT * FROM musiciandb.user_detail WHERE username=?")
+	r.insertNewUserStmt = r.MustPrepareNamedStmt("INSERT INTO musiciandb.user_detail (id, email, username, password, name, gender, birthdate, bio, role) VALUES (:id, :email, :username, :password, :name. :gender, :birthdate, :bio, :role)")
 	return &r
 }
 
@@ -68,5 +68,16 @@ func (db *userRepository) FindByUsername(username string) (usr UserDetail, err e
 		log.Printf("Username: %v doesn't exist", username)
 		log.Println("Error at finding username:  ", err)
 	}
+	return
+}
+
+func (db *userRepository) InsertNewUser(newUser UserDetail) (success bool, err error) {
+	_, err = db.insertNewUserStmt.Exec(newUser)
+	if err != nil {
+		log.Println("Error inserting new user:  ", err)
+		success = false
+		return
+	}
+	success = true
 	return
 }
