@@ -12,7 +12,6 @@ type userRepository struct {
 	conn                      *sqlx.DB
 	findIDStmt                *sqlx.Stmt
 	findEmailStmt             *sqlx.Stmt
-	findPhoneStmt             *sqlx.Stmt
 	findUsernameStmt          *sqlx.Stmt
 	insertNewUserStmt         *sqlx.NamedStmt
 }
