@@ -5,7 +5,7 @@ import (
 )
 
 type UserDetail struct{
-	ID			string		`json:"user_id" db:"user_id"`
+	ID			string		`json:"user_id" db:"id"`
 	Email		string		`json:"email" db:"email"`
 	Username	string		`json:"username" db:"username"`
 	Password	string		`json:"password" db:"password"`
