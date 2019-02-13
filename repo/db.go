@@ -39,7 +39,7 @@ func NewRepository(db *sqlx.DB) AppRepository {
 	r.findIDStmt = r.MustPrepareStmt("SELECT * FROM musiciandb.user_detail WHERE id=?")
 	r.findEmailStmt = r.MustPrepareStmt("SELECT * FROM musiciandb.user_detail WHERE email=?")
 	r.findUsernameStmt = r.MustPrepareStmt("SELECT * FROM musiciandb.user_detail WHERE username=?")
-	r.insertNewUserStmt = r.MustPrepareNamedStmt("INSERT INTO musiciandb.user_detail (id, email, username, password, name, gender, birthdate, bio, role) VALUES (:id, :email, :username, :password, :name. :gender, :birthdate, :bio, :role)")
+	r.insertNewUserStmt = r.MustPrepareNamedStmt("INSERT INTO musiciandb.user_detail (id, email, username, password, name, gender, birthdate, bio, role) VALUES (:id, :email, :username, :password, :name, :gender, :birthdate, :bio, :role)")
 	return &r
 }
 
