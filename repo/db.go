@@ -14,6 +14,7 @@ type userRepository struct {
 	findEmailStmt             *sqlx.Stmt
 	findUsernameStmt          *sqlx.Stmt
 	insertNewUserStmt         *sqlx.NamedStmt
+	updatePasswordStmt        *sqlx.Stmt
 }
 
 func (db *userRepository) MustPrepareStmt(query string) *sqlx.Stmt {
@@ -39,6 +40,7 @@ func NewRepository(db *sqlx.DB) AppRepository {
 	r.findIDStmt = r.MustPrepareStmt("SELECT * FROM musiciandb.user_detail WHERE id=?")
 	r.findEmailStmt = r.MustPrepareStmt("SELECT * FROM musiciandb.user_detail WHERE email=?")
 	r.findUsernameStmt = r.MustPrepareStmt("SELECT * FROM musiciandb.user_detail WHERE username=?")
+	r.updatePasswordStmt = r.MustPrepareStmt("UPDATE musiciandb.user_detail SET password=? WHERE id=?")
 	r.insertNewUserStmt = r.MustPrepareNamedStmt("INSERT INTO musiciandb.user_detail (id, email, username, password, name, gender, birthdate, bio, role) VALUES (:id, :email, :username, :password, :name, :gender, :birthdate, :bio, :role)")
 	return &r
 }
@@ -76,6 +78,16 @@ func (db *userRepository) InsertNewUser(newUser UserDetail) (success bool, err e
 		log.Println("Error inserting new user:  ", err)
 		success = false
 		return
+	}
+	success = true
+	return
+}
+
+func (db *userRepository) UpdatePassword(id string, newPassword string) (success bool, err error) {
+	_, err = db.updatePasswordStmt.Exec(newPassword, id)
+	if err != nil {
+		log.Println("Failed to update password: ", err)
+		success = false
 	}
 	success = true
 	return

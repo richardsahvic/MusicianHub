@@ -7,7 +7,7 @@ import (
 )
 
 var contoh = "bla8888@ijo"
-var utksalt bcrypt.BcryptSalt = "kunciutkappricat"
+var salt bcrypt.BcryptSalt = "$2a$04$pwTMbBwCyBbsuH13QnSHH."
 
 func main(){
 	hashed, err := bcrypt.Crypt(contoh, utksalt)

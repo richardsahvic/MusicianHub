@@ -10,7 +10,7 @@ import (
 
 	"github.com/bwmarrin/snowflake"
 	"github.com/dgrijalva/jwt-go"
-	"github.com/jankuo/xxtea/xxtea"
+	"github.com/memcachier/bcrypt"
 )
 
 type userService struct{
@@ -22,6 +22,7 @@ type Token struct{
 }
 
 var mySigningKey []byte
+var salt bcrypt.BcryptSalt = "$2a$04$pwTMbBwCyBbsuH13QnSHH."
 
 func at(t time.Time, f func()) {
 	jwt.TimeFunc = func() time.Time {
@@ -36,16 +37,18 @@ func NewUserService(userRepo repo.AppRepository) UserService {
 	return &s
 }
 
-func EncryptPassword(password string) (string) {
-	key := "userpass"
-	encrypted := xxtea.Encrypt([]byte(password), []byte(key))
-	return string(encrypted)
+func EncryptPassword(password string, salt bcrypt.BcryptSalt) (hashed string, err error) {
+	hashed, err = bcrypt.Crypt(password, salt)
+	if err != nil{
+		fmt.Println("hash failed,",err)
+	}
+	return
 }
 
-// func CheckPasswordHash(password, hash string) bool {
-// 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-// 	return err == nil
-// }
+func CheckPasswordHash(password, hash string) (match bool, err error){
+	match, err = bcrypt.Verify(password, hash)
+	return 
+}
 
 func (s *userService) Register(userRegister repo.UserDetail) (success bool, err error) {
 	success = false
@@ -73,9 +76,9 @@ func (s *userService) Register(userRegister repo.UserDetail) (success bool, err 
 		return
 	}
 
-	userRegister.Password = EncryptPassword(userRegister.Password)
-	if userRegister.Password == "" {
-		log.Println("Failed encrypting password")
+	userRegister.Password, err = EncryptPassword(userRegister.Password, salt)
+	if err != nil {
+		log.Println("Failed encrypting password", err)
 		return
 	}
 
@@ -93,5 +96,83 @@ func (s *userService) Register(userRegister repo.UserDetail) (success bool, err 
 		fmt.Println("Error at user_service.go, ", err)
 		return
 	}
+	return
+}
+
+func (s *userService) Login(username string, password string) (token string, err error) {
+	mySigningKey = []byte("TheSignatureofTheBank")
+
+	userData, err := s.userRepo.FindByUsername(username)
+	if err != nil {
+		fmt.Println("Error at user service, getting user data: ", err)
+		return
+	}
+
+	match, err := CheckPasswordHash(password, userData.Password)
+	if !match || err != nil {
+		log.Println("Wrong password")
+		log.Println(err)
+		return
+	}
+
+	claims := Token{
+		jwt.StandardClaims{
+			Subject:   userData.ID,
+			ExpiresAt: time.Now().Add(1 * time.Hour).Unix(),
+		},
+	}
+
+	signing := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	token, _ = signing.SignedString(mySigningKey)
+	if len(token) == 0 {
+		log.Println("Failed to generate token")
+		return
+	}
+	return
+}
+
+func (s *userService) ChangePassword(token string, password string, newPassword string) (success bool, err error) {
+	success = false
+
+	var id string
+
+	at(time.Unix(0, 0), func() {
+		tokenClaims, err := jwt.ParseWithClaims(token, &Token{}, func(tokenClaims *jwt.Token) (interface{}, error) {
+			return []byte("IDKWhatThisIs"), nil
+		})
+
+		if claims, _ := tokenClaims.Claims.(*Token); claims.ExpiresAt > time.Now().Unix() {
+			id = claims.StandardClaims.Subject
+			log.Println(claims.Subject)
+		} else {
+			fmt.Println("token Invalid,    ", err)
+		}
+	})
+
+	userData, err := s.userRepo.FindByID(id)
+	if err != nil {
+		fmt.Println("Error at user service, getting balance: ", err)
+		return
+	}
+
+	match,err := CheckPasswordHash(password, userData.Password)
+	if !match || err != nil {
+		log.Println("Wrong password")
+		log.Println(err)
+		return
+	}
+
+	hashedNewPass, err := EncryptPassword(newPassword, salt)
+	if err != nil {
+		log.Println("Failed encrypting password,  ", err)
+		return
+	}
+
+	success, err = s.userRepo.UpdatePassword(id, hashedNewPass)
+	if err != nil {
+		log.Println("Error at user service, updating password: ", err)
+		return
+	}
+
 	return
 }
