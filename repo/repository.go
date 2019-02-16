@@ -6,4 +6,5 @@ type AppRepository interface {
 	FindByUsername(username string) (UserDetail, error)
 	InsertNewUser(user UserDetail) (bool, error)
 	UpdatePassword(id string, newPassword string) (bool, error)
+	SelectAllGenre() (struct)
 }

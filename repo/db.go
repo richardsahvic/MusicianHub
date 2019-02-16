@@ -92,3 +92,13 @@ func (db *userRepository) UpdatePassword(id string, newPassword string) (success
 	success = true
 	return
 }
+
+// func (db *userRepository) AllGenre() (struct) {
+// 	rows, err := db.Queryx("SELECT * FROM musiciandb.genre_list")
+// 	for rows.Next() {
+//         err := rows.StructScan(&place)
+//         if err != nil {
+//             log.Fatalln(err)
+//         }
+//     }
+// }

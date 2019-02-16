@@ -5,15 +5,15 @@ type Response struct {
 }
 
 type RegisterRequest struct{
-	ID string `json:"user_id"`
-	Email string `json:"email"`
-	Username string `json:"username"`
-	Password string `json:"password"`
-	Name string `json:"name"`
-	Gender string `json:"gender"`
-	Birthdate string `json:"birthdate"`
-	Bio string `json:"bio"`
-	Role string `json:"role"`
+	ID 			string `json:"user_id"`
+	Email 		string `json:"email"`
+	Username 	string `json:"username"`
+	Password 	string `json:"password"`
+	Name 		string `json:"name"`
+	Gender 		string `json:"gender"`
+	Birthdate 	string `json:"birthdate"`
+	Bio 		string `json:"bio"`
+	Role 		string `json:"role"`
 }
 
 type LoginRequest struct {
@@ -24,4 +24,14 @@ type LoginRequest struct {
 type ChangePasswordRequest struct {
 	Password    string `json:"password"`
 	NewPassword string `json:"newpassword"`
+}
+
+type GenreResponse struct {
+	ID 		string `json:"genre_id"`
+	Genre 	string `json:"genre"`
+}
+
+type InstrumentResponse struct {
+	ID			string `json:"instrument_id"`
+	Instrument 	string `json:"instrument"`
 }
