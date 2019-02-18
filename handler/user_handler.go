@@ -101,3 +101,15 @@ func ChangePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	json.NewEncoder(w).Encode(changePwResp)
 }
+
+func GetGenresHandler(w http.ResponseWriter, r *http.Request){
+	w.Header().Set("Content-Type", "application/json")
+	genres, _ := userService.GetGenres()
+	json.NewEncoder(w).Encode(genres)
+}
+
+func GetInstrumentsHandler(w http.ResponseWriter, r *http.Request){
+	w.Header().Set("Content-Type", "application/json")
+	instruments, _ := userService.GetInstruments()
+	json.NewEncoder(w).Encode(instruments)
+}

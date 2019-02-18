@@ -8,8 +8,8 @@ type UserService interface {
 	Register(userRegister repo.UserDetail) (bool, error)
 	Login(username string, password string) (string, error)
 	ChangePassword(token string, password string, newPassword string) (bool, error)
-	AllGenre() (struct)
-	AllInstrument() (struct)
+	GetGenres() ([]repo.GenreList, error)
+	GetInstruments() ([]repo.InstrumentList, error)
 }
 
 var User UserService

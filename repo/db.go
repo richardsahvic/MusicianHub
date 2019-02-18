@@ -9,12 +9,14 @@ import (
 )
 
 type userRepository struct {
-	conn                      *sqlx.DB
-	findIDStmt                *sqlx.Stmt
-	findEmailStmt             *sqlx.Stmt
-	findUsernameStmt          *sqlx.Stmt
-	insertNewUserStmt         *sqlx.NamedStmt
-	updatePasswordStmt        *sqlx.Stmt
+	conn                      	*sqlx.DB
+	findIDStmt                	*sqlx.Stmt
+	findEmailStmt             	*sqlx.Stmt
+	findUsernameStmt          	*sqlx.Stmt
+	insertNewUserStmt         	*sqlx.NamedStmt
+	updatePasswordStmt        	*sqlx.Stmt
+	getGenre					*sqlx.Stmt
+	getInstrument				*sqlx.Stmt
 }
 
 func (db *userRepository) MustPrepareStmt(query string) *sqlx.Stmt {
@@ -42,6 +44,8 @@ func NewRepository(db *sqlx.DB) AppRepository {
 	r.findUsernameStmt = r.MustPrepareStmt("SELECT * FROM musiciandb.user_detail WHERE username=?")
 	r.updatePasswordStmt = r.MustPrepareStmt("UPDATE musiciandb.user_detail SET password=? WHERE id=?")
 	r.insertNewUserStmt = r.MustPrepareNamedStmt("INSERT INTO musiciandb.user_detail (id, email, username, password, name, gender, birthdate, bio, role) VALUES (:id, :email, :username, :password, :name, :gender, :birthdate, :bio, :role)")
+	r.getGenre = r.MustPrepareStmt("SELECT * FROM musiciandb.genre_list")
+	r.getInstrument = r.MustPrepareStmt("SELECT * FROM musiciandb.instrument_list")
 	return &r
 }
 
@@ -93,12 +97,18 @@ func (db *userRepository) UpdatePassword(id string, newPassword string) (success
 	return
 }
 
-// func (db *userRepository) AllGenre() (struct) {
-// 	rows, err := db.Queryx("SELECT * FROM musiciandb.genre_list")
-// 	for rows.Next() {
-//         err := rows.StructScan(&place)
-//         if err != nil {
-//             log.Fatalln(err)
-//         }
-//     }
-// }
+func (db *userRepository) GetGenres() (genres []GenreList, err error) {
+	err = db.getGenre.Select(&genres)
+	if err != nil{
+		log.Println("Failed to get genres: ", err)
+	}
+	return
+}
+
+func (db *userRepository) GetInstruments() (instruments []InstrumentList, err error) {
+	err = db.getInstrument.Select(&instruments)
+	if err != nil{
+		log.Println("Failed to get instruments: ", err)
+	}
+	return
+}

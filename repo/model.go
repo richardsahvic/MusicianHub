@@ -19,13 +19,13 @@ type UserDetail struct{
 }
 
 type GenreList struct{
-	ID		string	`json:"genre_id" db:"genre_id"`
+	ID		string	`json:"id" db:"id"`
 	Genre	string	`json:"genre" db"genre"`
 }
 
 type InstrumentList struct{
-	ID			string	`json:"instrument_id" db:"instrument_id"`
-	Instrument	string	`json:"instrument"	db:"instrument"`
+	ID			string	`json:"id" db:"id"`
+	Instrument	string	`json:"instrument" db:"instrument"`
 }
 
 type UserInstrument struct{

@@ -176,3 +176,13 @@ func (s *userService) ChangePassword(token string, password string, newPassword 
 
 	return
 }
+
+func (s *userService) GetGenres() (genres []repo.GenreList, err error){
+	genres, err = s.userRepo.GetGenres()
+	return
+}
+
+func (s *userService) GetInstruments() (instruments []repo.InstrumentList, err error){
+	instruments, err = s.userRepo.GetInstruments()
+	return
+}
