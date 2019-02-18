@@ -68,14 +68,6 @@ func (s *userService) Register(userRegister repo.UserDetail) (success bool, err 
 		return
 	}
 
-	checkUsername, err := s.userRepo.FindByUsername(userRegister.Username)
-	newUsername := checkUsername.Username
-	if len(newUsername) != 0 {
-		success = false
-		log.Printf("Username: %v is already exist", newUsername)
-		return
-	}
-
 	userRegister.Password, err = EncryptPassword(userRegister.Password, salt)
 	if err != nil {
 		log.Println("Failed encrypting password", err)
@@ -99,10 +91,10 @@ func (s *userService) Register(userRegister repo.UserDetail) (success bool, err 
 	return
 }
 
-func (s *userService) Login(username string, password string) (token string, err error) {
+func (s *userService) Login(email string, password string) (token string, err error) {
 	mySigningKey = []byte("TheSignatureofTheBank")
 
-	userData, err := s.userRepo.FindByUsername(username)
+	userData, err := s.userRepo.FindByEmail(email)
 	if err != nil {
 		fmt.Println("Error at user service, getting user data: ", err)
 		return
@@ -151,7 +143,7 @@ func (s *userService) ChangePassword(token string, password string, newPassword 
 
 	userData, err := s.userRepo.FindByID(id)
 	if err != nil {
-		fmt.Println("Error at user service, getting balance: ", err)
+		fmt.Println("Error at user service: ", err)
 		return
 	}
 

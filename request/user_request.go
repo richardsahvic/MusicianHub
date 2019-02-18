@@ -7,17 +7,11 @@ type Response struct {
 type RegisterRequest struct{
 	ID 			string `json:"user_id"`
 	Email 		string `json:"email"`
-	Username 	string `json:"username"`
 	Password 	string `json:"password"`
-	Name 		string `json:"name"`
-	Gender 		string `json:"gender"`
-	Birthdate 	string `json:"birthdate"`
-	Bio 		string `json:"bio"`
-	Role 		string `json:"role"`
 }
 
 type LoginRequest struct {
-	Username string `json:"username"`
+	Email string `json:"email"`
 	Password string `json:"password"`
 }
 

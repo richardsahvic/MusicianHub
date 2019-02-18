@@ -27,13 +27,7 @@ func RegisterHandler(w http.ResponseWriter, r *http.Request) {
 
 	userRegister := repo.UserDetail{
 		Email:		regRequest.Email,
-		Username:	regRequest.Username,
 		Password:	regRequest.Password,
-		Name:		regRequest.Name,
-		Gender:		regRequest.Gender,
-		Birthdate:	regRequest.Birthdate,
-		Bio:		regRequest.Bio,
-		Role:		regRequest.Role,
 	}
 	
 	registerResult, err := userService.Register(userRegister)
@@ -59,7 +53,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	var loginReq request.LoginRequest
 	json.Unmarshal(body, &loginReq)
 
-	loginToken, err := userService.Login(loginReq.Username, loginReq.Password)
+	loginToken, err := userService.Login(loginReq.Email, loginReq.Password)
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
 		return

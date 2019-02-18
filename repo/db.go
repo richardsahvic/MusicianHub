@@ -12,7 +12,6 @@ type userRepository struct {
 	conn                      	*sqlx.DB
 	findIDStmt                	*sqlx.Stmt
 	findEmailStmt             	*sqlx.Stmt
-	findUsernameStmt          	*sqlx.Stmt
 	insertNewUserStmt         	*sqlx.NamedStmt
 	updatePasswordStmt        	*sqlx.Stmt
 	getGenre					*sqlx.Stmt
@@ -39,11 +38,10 @@ func (db *userRepository) MustPrepareNamedStmt(query string) *sqlx.NamedStmt {
 
 func NewRepository(db *sqlx.DB) AppRepository {
 	r := userRepository{conn: db}
-	r.findIDStmt = r.MustPrepareStmt("SELECT * FROM musiciandb.user_detail WHERE id=?")
-	r.findEmailStmt = r.MustPrepareStmt("SELECT * FROM musiciandb.user_detail WHERE email=?")
-	r.findUsernameStmt = r.MustPrepareStmt("SELECT * FROM musiciandb.user_detail WHERE username=?")
+	r.findIDStmt = r.MustPrepareStmt("SELECT email, password FROM musiciandb.user_detail WHERE id=?")
+	r.findEmailStmt = r.MustPrepareStmt("SELECT id, email, password FROM musiciandb.user_detail WHERE email=?")
 	r.updatePasswordStmt = r.MustPrepareStmt("UPDATE musiciandb.user_detail SET password=? WHERE id=?")
-	r.insertNewUserStmt = r.MustPrepareNamedStmt("INSERT INTO musiciandb.user_detail (id, email, username, password, name, gender, birthdate, bio, role) VALUES (:id, :email, :username, :password, :name, :gender, :birthdate, :bio, :role)")
+	r.insertNewUserStmt = r.MustPrepareNamedStmt("INSERT INTO musiciandb.user_detail (id, email, password) VALUES (:id, :email, :password)")
 	r.getGenre = r.MustPrepareStmt("SELECT * FROM musiciandb.genre_list")
 	r.getInstrument = r.MustPrepareStmt("SELECT * FROM musiciandb.instrument_list")
 	return &r
@@ -52,7 +50,6 @@ func NewRepository(db *sqlx.DB) AppRepository {
 func (db *userRepository) FindByID(id string) (usr UserDetail, err error) {
 	err = db.findIDStmt.Get(&usr, id)
 	if err != nil {
-		log.Printf("ID: %v , doesn't exist", id)
 		log.Println("Error at finding id:  ", err)
 	}
 	return
@@ -61,17 +58,7 @@ func (db *userRepository) FindByID(id string) (usr UserDetail, err error) {
 func (db *userRepository) FindByEmail(email string) (usr UserDetail, err error) {
 	err = db.findEmailStmt.Get(&usr, email)
 	if err != nil {
-		log.Printf("Email: %v, doesn't exist", email)
 		log.Println("Error at finding email:  ", err)
-	}
-	return
-}
-
-func (db *userRepository) FindByUsername(username string) (usr UserDetail, err error) {
-	err = db.findUsernameStmt.Get(&usr, username)
-	if err != nil {
-		log.Printf("Username: %v doesn't exist", username)
-		log.Println("Error at finding username:  ", err)
 	}
 	return
 }
