@@ -14,6 +14,7 @@ type UserDetail struct{
 	Bio			string		`json:"bio" db:"bio"`
 	CreatedAt 	time.Time 	`json:"created_at" db:"created_at"`
 	UpdatedAt 	time.Time 	`json:"updated_at" db:"updated_at"`
+	AvatarUrl	string		`json:"avatar_url" db:"avatar_url"`
 }
 
 type GenreList struct{
@@ -27,13 +28,13 @@ type InstrumentList struct{
 }
 
 type UserInstrument struct{
-	IDUInstrument	string	`json:"uinstrument_id" db:"uinstrument_id"`
-	UserId			string	`json:"user_id" db:"user_id"`
-	InstrumentId	string	`json:"instrument_id" db:"instrument_id"`
+	IDUserInstrument	string	`json:"uinstrument_id" db:"id"`
+	UserId				string	`json:"user_id" db:"user_id"`
+	InstrumentId		string	`json:"instrument_id" db:"instrument_id"`
 }
 
 type UserGenre struct{
-	IDUGenre	string	`json:"ugenre_id" db:"ugenre_id"`
+	IDUserGenre	string	`json:"ugenre_id" db:"id"`
 	UserId		string	`json:"user_id" db:"user_id"`
 	GenreId		string	`json:"genre_id" db:"genre_id"`
 }

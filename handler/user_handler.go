@@ -107,3 +107,45 @@ func GetInstrumentsHandler(w http.ResponseWriter, r *http.Request){
 	instruments, _ := userService.GetInstruments()
 	json.NewEncoder(w).Encode(instruments)
 }
+
+func  MakeProfileHandler(w http.ResponseWriter, r *http.Request){
+	w.Header().Set("Content-Type", "application/json")
+
+	token := r.Header.Get("token")
+
+	body, _ := ioutil.ReadAll(io.LimitReader(r.Body, 5000))
+
+	var profileReq request.ProfileRequest
+	json.Unmarshal(body, &profileReq)
+
+	userProfile := repo.UserDetail{
+		Name:	profileReq.Name,
+		Gender: profileReq.Gender,
+		Birthdate: profileReq.Birthdate,
+		Bio: profileReq.Bio,
+		AvatarUrl: profileReq.AvatarUrl,
+	}
+
+	userGenre := repo.UserGenre{
+		GenreId: profileReq.Genre,
+	}
+
+	userInstrument := repo.UserInstrument{
+		InstrumentId: profileReq.Instrument,
+	}
+
+	success, err := userService.MakeProfile(token, userProfile, userGenre, userInstrument)
+	if err != nil {
+		log.Println("Failed to make profile: ", err)
+	}
+
+	var makeProfileResp request.Response
+
+	if !success {
+		makeProfileResp.Message = "Failed to make profile"
+	} else {
+		makeProfileResp.Message = "Profile made"
+	}
+
+	json.NewEncoder(w).Encode(makeProfileResp)
+}

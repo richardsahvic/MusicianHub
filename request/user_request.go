@@ -11,8 +11,8 @@ type RegisterRequest struct{
 }
 
 type LoginRequest struct {
-	Email string `json:"email"`
-	Password string `json:"password"`
+	Email 		string `json:"email"`
+	Password 	string `json:"password"`
 }
 
 type ChangePasswordRequest struct {
@@ -20,12 +20,12 @@ type ChangePasswordRequest struct {
 	NewPassword string `json:"newpassword"`
 }
 
-type GenreResponse struct {
-	ID 		string `json:"genre_id"`
-	Genre 	string `json:"genre"`
-}
-
-type InstrumentResponse struct {
-	ID			string `json:"instrument_id"`
-	Instrument 	string `json:"instrument"`
+type ProfileRequest struct {
+	Name 		string 	`json:"name"`
+	Gender 		string 	`json:"gender"`
+	Birthdate 	string 	`json:"birthdate"`
+	Bio 		string 	`json:"bio"`
+	AvatarUrl	string	`json:"avatar_url"`
+	Genre 		string	`json:"genre_id"`
+	Instrument 	string	`json:"instrument_id"`
 }

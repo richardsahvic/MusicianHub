@@ -12,10 +12,13 @@ type userRepository struct {
 	conn                      	*sqlx.DB
 	findIDStmt                	*sqlx.Stmt
 	findEmailStmt             	*sqlx.Stmt
-	insertNewUserStmt         	*sqlx.NamedStmt
 	updatePasswordStmt        	*sqlx.Stmt
 	getGenre					*sqlx.Stmt
 	getInstrument				*sqlx.Stmt
+	userProfileStmt				*sqlx.Stmt
+	insertNewUserStmt         	*sqlx.NamedStmt
+	insertUserGenreStmt			*sqlx.NamedStmt
+	insertUserInstrumentStmt	*sqlx.NamedStmt
 }
 
 func (db *userRepository) MustPrepareStmt(query string) *sqlx.Stmt {
@@ -41,9 +44,12 @@ func NewRepository(db *sqlx.DB) AppRepository {
 	r.findIDStmt = r.MustPrepareStmt("SELECT email, password FROM musiciandb.user_detail WHERE id=?")
 	r.findEmailStmt = r.MustPrepareStmt("SELECT id, email, password FROM musiciandb.user_detail WHERE email=?")
 	r.updatePasswordStmt = r.MustPrepareStmt("UPDATE musiciandb.user_detail SET password=? WHERE id=?")
-	r.insertNewUserStmt = r.MustPrepareNamedStmt("INSERT INTO musiciandb.user_detail (id, email, password) VALUES (:id, :email, :password)")
 	r.getGenre = r.MustPrepareStmt("SELECT * FROM musiciandb.genre_list")
 	r.getInstrument = r.MustPrepareStmt("SELECT * FROM musiciandb.instrument_list")
+	r.insertNewUserStmt = r.MustPrepareNamedStmt("INSERT INTO musiciandb.user_detail (id, email, password) VALUES (:id, :email, :password)")
+	r.insertUserGenreStmt = r.MustPrepareNamedStmt("INSERT INTO musiciandb.user_genre (user_id, genre_id) VALUES (:user_id, :genre_id)")
+	r.insertUserInstrumentStmt = r.MustPrepareNamedStmt("INSERT INTO musiciandb.user_instrument (user_id, instrument_id) VALUES (:user_id, :instrument_id)")
+	r.userProfileStmt = r.MustPrepareStmt("UPDATE musiciandb.user_detail SET name=?, gender=?, birthdate=?, bio=?, avatar_url=? WHERE id=?")
 	return &r
 }
 
@@ -97,5 +103,30 @@ func (db *userRepository) GetInstruments() (instruments []InstrumentList, err er
 	if err != nil{
 		log.Println("Failed to get instruments: ", err)
 	}
+	return
+}
+
+func (db *userRepository) InsertProfile(name string, gender string, birthdate string, bio string, avatarurl string, id string, genre UserGenre, instrument UserInstrument) (success bool, err error){
+	success = false
+
+	_, err = db.userProfileStmt.Exec(name, gender, birthdate, bio, avatarurl, id)
+	if err != nil {
+		log.Println("Failed making profile: ", err)
+		return
+	}
+
+	_, err = db.insertUserGenreStmt.Exec(genre)
+	if err != nil {
+		log.Println("Failed inserting user genre:  ", err)		
+		return
+	}
+
+	_, err = db.insertUserInstrumentStmt.Exec(instrument)
+	if err != nil {
+		log.Println("Failed inserting user instrument:  ", err)
+		return
+	}
+
+	success = true;
 	return
 }

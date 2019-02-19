@@ -178,3 +178,34 @@ func (s *userService) GetInstruments() (instruments []repo.InstrumentList, err e
 	instruments, err = s.userRepo.GetInstruments()
 	return
 }
+
+func (s *userService) MakeProfile(token string, profile repo.UserDetail, genre repo.UserGenre, instrument repo.UserInstrument) (success bool, err error){
+	success = false
+
+	var id string
+
+	at(time.Unix(0, 0), func() {
+		tokenClaims, err := jwt.ParseWithClaims(token, &Token{}, func(tokenClaims *jwt.Token) (interface{}, error) {
+			return []byte("IDKWhatThisIs"), nil
+		})
+
+		if claims, _ := tokenClaims.Claims.(*Token); claims.ExpiresAt > time.Now().Unix() {
+			id = claims.StandardClaims.Subject
+			log.Println(claims.Subject)
+		} else {
+			fmt.Println("token Invalid,    ", err)
+		}
+	})
+
+	genre.UserId = id
+	instrument.UserId = id
+
+	success, err = s.userRepo.InsertProfile(profile.Name, profile.Gender, profile.Birthdate, profile.Bio,
+											profile.AvatarUrl, id, genre, instrument)
+	if err != nil {
+		log.Println("Error inserting profile: ", err)
+		return
+	}
+
+	return
+}
