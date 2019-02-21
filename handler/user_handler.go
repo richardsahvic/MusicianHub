@@ -149,3 +149,41 @@ func  MakeProfileHandler(w http.ResponseWriter, r *http.Request){
 
 	json.NewEncoder(w).Encode(makeProfileResp)
 }
+
+func  UpdateProfileHandler(w http.ResponseWriter, r *http.Request){
+	w.Header().Set("Content-Type", "application/json")
+
+	token := r.Header.Get("token")
+
+	body, _ := ioutil.ReadAll(io.LimitReader(r.Body, 5000))
+
+	var profileReq request.ProfileRequest
+	json.Unmarshal(body, &profileReq)
+
+	userProfile := repo.UserDetail{
+		Name:	profileReq.Name,
+		Gender: profileReq.Gender,
+		Birthdate: profileReq.Birthdate,
+		Bio: profileReq.Bio,
+		AvatarUrl: profileReq.AvatarUrl,
+	}
+
+	userGenre := profileReq.Genre
+
+	userInstrument := profileReq.Instrument
+
+	success, err := userService.UpdateProfile(token, userProfile, userGenre, userInstrument)
+	if err != nil {
+		log.Println("Failed to update profile: ", err)
+	}	
+
+	var updateProfileResp request.Response
+
+	if !success {
+		updateProfileResp.Message = "Failed to update profile"
+	} else {
+		updateProfileResp.Message = "Profile updated"
+	}
+
+	json.NewEncoder(w).Encode(updateProfileResp)
+}

@@ -11,6 +11,7 @@ type UserService interface {
 	GetGenres() ([]repo.GenreList, error)
 	GetInstruments() ([]repo.InstrumentList, error)
 	MakeProfile(token string, profile repo.UserDetail, genre repo.UserGenre, instrument repo.UserInstrument) (bool, error)
+	UpdateProfile(token string, profile repo.UserDetail, genre string, instrument string) (bool, error)
 }
 
 var User UserService

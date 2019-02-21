@@ -8,4 +8,5 @@ type AppRepository interface {
 	GetGenres() ([]GenreList, error)
 	GetInstruments() ([]InstrumentList, error)
 	InsertProfile(name string, gender string, birthdate string, bio string, avatarurl string, id string, genre UserGenre, instrument UserInstrument) (bool, error)
+	UpdateProfile(name string, gender string, birthdate string, bio string, avatarurl string, id string, genre string, instrument string) (bool, error)
 }

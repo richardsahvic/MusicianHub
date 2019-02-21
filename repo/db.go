@@ -16,6 +16,8 @@ type userRepository struct {
 	getGenre					*sqlx.Stmt
 	getInstrument				*sqlx.Stmt
 	userProfileStmt				*sqlx.Stmt
+	updateUserGenreStmt			*sqlx.Stmt
+	updateUserInstrumentStmt	*sqlx.Stmt
 	insertNewUserStmt         	*sqlx.NamedStmt
 	insertUserGenreStmt			*sqlx.NamedStmt
 	insertUserInstrumentStmt	*sqlx.NamedStmt
@@ -44,6 +46,8 @@ func NewRepository(db *sqlx.DB) AppRepository {
 	r.findIDStmt = r.MustPrepareStmt("SELECT email, password FROM musiciandb.user_detail WHERE id=?")
 	r.findEmailStmt = r.MustPrepareStmt("SELECT id, email, password FROM musiciandb.user_detail WHERE email=?")
 	r.updatePasswordStmt = r.MustPrepareStmt("UPDATE musiciandb.user_detail SET password=? WHERE id=?")
+	r.updateUserGenreStmt = r.MustPrepareStmt("UPDATE musiciandb.user_genre SET genre_id=? WHERE user_id=?")
+	r.updateUserInstrumentStmt = r.MustPrepareStmt("UPDATE musiciandb.user_instrument SET instrument_id=? WHERE user_id=?")
 	r.getGenre = r.MustPrepareStmt("SELECT * FROM musiciandb.genre_list")
 	r.getInstrument = r.MustPrepareStmt("SELECT * FROM musiciandb.instrument_list")
 	r.insertNewUserStmt = r.MustPrepareNamedStmt("INSERT INTO musiciandb.user_detail (id, email, password) VALUES (:id, :email, :password)")
@@ -124,6 +128,31 @@ func (db *userRepository) InsertProfile(name string, gender string, birthdate st
 	_, err = db.insertUserInstrumentStmt.Exec(instrument)
 	if err != nil {
 		log.Println("Failed inserting user instrument:  ", err)
+		return
+	}
+
+	success = true;
+	return
+}
+
+func (db *userRepository) UpdateProfile(name string, gender string, birthdate string, bio string, avatarurl string, id string, genre string, instrument string) (success bool, err error){
+	success = false
+
+	_, err = db.userProfileStmt.Exec(name, gender, birthdate, bio, avatarurl, id)
+	if err != nil {
+		log.Println("Failed updating profile:", err)
+		return
+	}
+
+	_, err = db.updateUserGenreStmt.Exec(genre, id)
+	if err != nil {
+		log.Println("Failed updating user's genre:", err)
+		return
+	}
+
+	_, err = db.updateUserInstrumentStmt.Exec(instrument, id)
+	if err != nil {
+		log.Println("Failed updating user's instrument:", err)
 		return
 	}
 
