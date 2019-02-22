@@ -18,9 +18,11 @@ type userRepository struct {
 	userProfileStmt				*sqlx.Stmt
 	updateUserGenreStmt			*sqlx.Stmt
 	updateUserInstrumentStmt	*sqlx.Stmt
+	deletePostStmt				*sqlx.Stmt
 	insertNewUserStmt         	*sqlx.NamedStmt
 	insertUserGenreStmt			*sqlx.NamedStmt
 	insertUserInstrumentStmt	*sqlx.NamedStmt
+	insertNewPostStmt			*sqlx.NamedStmt
 }
 
 func (db *userRepository) MustPrepareStmt(query string) *sqlx.Stmt {
@@ -50,10 +52,12 @@ func NewRepository(db *sqlx.DB) AppRepository {
 	r.updateUserInstrumentStmt = r.MustPrepareStmt("UPDATE musiciandb.user_instrument SET instrument_id=? WHERE user_id=?")
 	r.getGenre = r.MustPrepareStmt("SELECT * FROM musiciandb.genre_list")
 	r.getInstrument = r.MustPrepareStmt("SELECT * FROM musiciandb.instrument_list")
+	r.deletePostStmt = r.MustPrepareStmt("DELETE FROM musiciandb.user_post WHERE post_id=?")
+	r.userProfileStmt = r.MustPrepareStmt("UPDATE musiciandb.user_detail SET name=?, gender=?, birthdate=?, bio=?, avatar_url=? WHERE id=?")
 	r.insertNewUserStmt = r.MustPrepareNamedStmt("INSERT INTO musiciandb.user_detail (id, email, password) VALUES (:id, :email, :password)")
 	r.insertUserGenreStmt = r.MustPrepareNamedStmt("INSERT INTO musiciandb.user_genre (user_id, genre_id) VALUES (:user_id, :genre_id)")
 	r.insertUserInstrumentStmt = r.MustPrepareNamedStmt("INSERT INTO musiciandb.user_instrument (user_id, instrument_id) VALUES (:user_id, :instrument_id)")
-	r.userProfileStmt = r.MustPrepareStmt("UPDATE musiciandb.user_detail SET name=?, gender=?, birthdate=?, bio=?, avatar_url=? WHERE id=?")
+	r.insertNewPostStmt = r.MustPrepareNamedStmt("INSERT INTO musiciandb.user_post (post_id, user_id, post_type, file_url, caption) VALUES (:post_id, :user_id, :post_type, :file_url, :caption)")
 	return &r
 }
 
@@ -74,10 +78,11 @@ func (db *userRepository) FindByEmail(email string) (usr UserDetail, err error) 
 }
 
 func (db *userRepository) InsertNewUser(newUser UserDetail) (success bool, err error) {
+	success = false
+
 	_, err = db.insertNewUserStmt.Exec(newUser)
 	if err != nil {
 		log.Println("Error inserting new user:  ", err)
-		success = false
 		return
 	}
 	success = true
@@ -157,5 +162,27 @@ func (db *userRepository) UpdateProfile(name string, gender string, birthdate st
 	}
 
 	success = true;
+	return
+}
+
+func (db *userRepository) InsertNewPost(newPost UserPost) (success bool, err error){
+	success = false
+	_, err = db.insertNewPostStmt.Exec(newPost)
+	if err != nil {
+		log.Println("Failed uploading new post:", err)
+		return
+	}
+	success = true
+	return
+}
+
+func (db *userRepository) DeletePost(postId string) (success bool, err error){
+	success = false
+	_, err = db.deletePostStmt.Exec(postId)
+	if err != nil {
+		log.Println("Failed to delete post:,", err)
+		return
+	}
+	success = true
 	return
 }

@@ -29,3 +29,15 @@ type ProfileRequest struct {
 	Genre 		string	`json:"genre_id"`
 	Instrument 	string	`json:"instrument_id"`
 }
+
+type NewPostRequest struct {
+	PostId string `json:"post_id"`
+	UserId string `json:"user_id"`
+	PostType string `json:"post_type"`
+	FileUrl string `json:"file_url"`
+	Caption string `json:"caption"`
+}
+
+type DeletePostRequest struct {
+	PostId string `json:"post_id"`
+}

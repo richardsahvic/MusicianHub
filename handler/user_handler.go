@@ -187,3 +187,57 @@ func  UpdateProfileHandler(w http.ResponseWriter, r *http.Request){
 
 	json.NewEncoder(w).Encode(updateProfileResp)
 }
+
+func NewPostHandler(w http.ResponseWriter, r *http.Request){
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	token := r.Header.Get("token")
+
+	body, _ := ioutil.ReadAll(io.LimitReader(r.Body, 5000))
+
+	var userPostReq request.NewPostRequest
+	json.Unmarshal(body, &userPostReq)
+
+	newPost := repo.UserPost{
+		PostType: userPostReq.PostType,
+		FileUrl:	userPostReq.FileUrl,
+		Caption:	userPostReq.Caption,
+	}
+
+	success, err := userService.UploadNewPost(token, newPost)
+	if err != nil {
+		log.Println("Failed to insert new post:", err)
+	}
+
+	var newPostResp request.Response
+
+	if !success {
+		newPostResp.Message = "Failed to post"
+	} else {
+		newPostResp.Message = "Posted"
+	}
+
+	json.NewEncoder(w).Encode(newPostResp)
+}
+
+func DeletePostHandler(w http.ResponseWriter, r *http.Request){
+	w.Header().Set("Content-Type", "application/json")
+
+	body, _ := ioutil.ReadAll(io.LimitReader(r.Body, 5000))
+
+	var deletePostReq request.DeletePostRequest
+	json.Unmarshal(body, &deletePostReq)
+
+	success, _ := userService.DeletePost(deletePostReq.PostId)
+
+	var deletePostResp request.Response
+
+	if !success {
+		deletePostResp.Message = "Failed to delete psot"
+	} else {
+		deletePostResp.Message = "Post deleted"
+	}
+
+	json.NewEncoder(w).Encode(deletePostResp)
+}

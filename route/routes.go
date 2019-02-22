@@ -15,5 +15,7 @@ func Routes() *mux.Router{
 	route.HandleFunc("/getinstruments", handler.GetInstrumentsHandler).Methods("GET")
 	route.HandleFunc("/makeprofile", handler.MakeProfileHandler).Methods("POST")
 	route.HandleFunc("/updateprofile", handler.UpdateProfileHandler).Methods("POST")
+	route.HandleFunc("/newpost", handler.NewPostHandler).Methods("POST")
+	route.HandleFunc("/deletepost", handler.DeletePostHandler).Methods("POST")
 	return route
 }

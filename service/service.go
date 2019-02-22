@@ -12,6 +12,8 @@ type UserService interface {
 	GetInstruments() ([]repo.InstrumentList, error)
 	MakeProfile(token string, profile repo.UserDetail, genre repo.UserGenre, instrument repo.UserInstrument) (bool, error)
 	UpdateProfile(token string, profile repo.UserDetail, genre string, instrument string) (bool, error)
+	UploadNewPost(token string, newPost repo.UserPost) (bool, error)
+	DeletePost(postId string) (bool, error)
 }
 
 var User UserService

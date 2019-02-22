@@ -5,12 +5,15 @@ import (
 	"log"
 	"regexp"
 	"time"
+	"errors"
+	"strings"
 
 	"repo"
 
 	"github.com/bwmarrin/snowflake"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/memcachier/bcrypt"
+	"github.com/satori/go.uuid"
 )
 
 type userService struct{
@@ -37,6 +40,7 @@ func NewUserService(userRepo repo.AppRepository) UserService {
 	return &s
 }
 
+// encrypt password before stored to database
 func EncryptPassword(password string, salt bcrypt.BcryptSalt) (hashed string, err error) {
 	hashed, err = bcrypt.Crypt(password, salt)
 	if err != nil{
@@ -45,9 +49,31 @@ func EncryptPassword(password string, salt bcrypt.BcryptSalt) (hashed string, er
 	return
 }
 
+// validate password
 func CheckPasswordHash(password, hash string) (match bool, err error){
 	match, err = bcrypt.Verify(password, hash)
 	return 
+}
+
+// check image's extension
+func getImageExtension(fileName string) (string, error) {
+	if "" == fileName {
+		err := errors.New("extension Invalid")
+		return "", err
+	}
+	stringSeparated := strings.Split(fileName, ".")
+	lastElement := len(stringSeparated) - 1
+	extension := make(map[string]bool)
+	extension["jpg"] = true
+	extension["png"] = true
+	extension["jpeg"] = true
+
+	if _, ok := extension[stringSeparated[lastElement]]; !ok {
+		err := errors.New("extension Invalid")
+		return "", err
+	}
+
+	return stringSeparated[lastElement], nil
 }
 
 func (s *userService) Register(userRegister repo.UserDetail) (success bool, err error) {
@@ -92,7 +118,7 @@ func (s *userService) Register(userRegister repo.UserDetail) (success bool, err 
 }
 
 func (s *userService) Login(email string, password string) (token string, err error) {
-	mySigningKey = []byte("TheSignatureofTheBank")
+	mySigningKey = []byte("TheSignatureofMusicianHub")
 
 	userData, err := s.userRepo.FindByEmail(email)
 	if err != nil {
@@ -179,6 +205,16 @@ func (s *userService) GetInstruments() (instruments []repo.InstrumentList, err e
 	return
 }
 
+func (s *userService) DeletePost(postId string) (success bool, err error){
+	success = false
+	success, err = s.userRepo.DeletePost(postId)
+	if err != nil {
+		log.Println("Failed to delete post:", err)
+		return
+	}
+	return
+}
+
 func (s *userService) MakeProfile(token string, profile repo.UserDetail, genre repo.UserGenre, instrument repo.UserInstrument) (success bool, err error){
 	success = false
 
@@ -236,4 +272,52 @@ func (s *userService) UpdateProfile(token string, profile repo.UserDetail, genre
 	}
 
 	return	
+}
+
+func (s *userService) UploadNewPost(token string, newPost repo.UserPost) (success bool, err error){
+	success = false
+
+	var id string
+
+	at(time.Unix(0, 0), func() {
+		tokenClaims, err := jwt.ParseWithClaims(token, &Token{}, func(tokenClaims *jwt.Token) (interface{}, error) {
+			return []byte("IDKWhatThisIs"), nil
+		})
+
+		if claims, _ := tokenClaims.Claims.(*Token); claims.ExpiresAt > time.Now().Unix() {
+			id = claims.StandardClaims.Subject
+			log.Println(claims.Subject)
+		} else {
+			fmt.Println("token Invalid,    ", err)
+		}
+	})
+
+	node, err := snowflake.NewNode(1)
+	if err != nil {
+		fmt.Println("Failed generating snowflake id,    ", err)
+		return
+	}
+
+	postId := node.Generate().String()
+
+	fileId := uuid.Must(uuid.NewV4())
+	extension, errImage := getImageExtension(newPost.FileUrl)
+	if errImage != nil {
+		err = errImage
+		log.Println(err)
+		return
+	}
+	generatedFileName := fileId.String() + "." + extension
+
+	newPost.PostId = postId
+	newPost.UserId = id
+	newPost.FileUrl = generatedFileName
+
+	success, err = s.userRepo.InsertNewPost(newPost)
+	if err != nil {
+		log.Println("Failed to post,", err)
+		return
+	}
+
+	return
 }
