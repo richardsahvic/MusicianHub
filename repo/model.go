@@ -47,3 +47,8 @@ type UserPost struct{
 	Caption string `json:"caption" db:"caption"`
 	CreatedAt string `json:"created_at" db:"created_at"`
 }
+
+type UserFollow struct{
+	UserId string `json:"user_id" db:"user_id"`
+	FollowedId string `json:"followed_id" db:"followed_id"`
+}

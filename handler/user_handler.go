@@ -241,3 +241,31 @@ func DeletePostHandler(w http.ResponseWriter, r *http.Request){
 
 	json.NewEncoder(w).Encode(deletePostResp)
 }
+
+func FollowUserHandler(w http.ResponseWriter, r *http.Request){
+	w.Header().Set("Content-Type", "application/json")
+
+	token := r.Header.Get("token")
+
+	body, _ := ioutil.ReadAll(io.LimitReader(r.Body, 5000))
+
+	var followReq request.FollowRequest
+	json.Unmarshal(body, &followReq)
+
+	userFollow := repo.UserFollow{
+		UserId:	followReq.UserId,
+		FollowedId: followReq.FollowedId,
+	}
+
+	success, _ := userService.FollowUser(token, userFollow)
+
+	var followResp request.Response
+
+	if !success {
+		followResp.Message = "Failed to follow"
+	} else {
+		followResp.Message = "Followed"
+	}
+
+	json.NewEncoder(w).Encode(followResp)
+}

@@ -11,4 +11,5 @@ type AppRepository interface {
 	UpdateProfile(name string, gender string, birthdate string, bio string, avatarurl string, id string, genre string, instrument string) (bool, error)
 	InsertNewPost(newPost UserPost) (bool, error)
 	DeletePost(postId string) (bool, error)
+	InsertFollow(userFollow UserFollow) (bool, error)
 }

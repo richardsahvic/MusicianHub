@@ -76,6 +76,28 @@ func getImageExtension(fileName string) (string, error) {
 	return stringSeparated[lastElement], nil
 }
 
+// check audio's extension
+func getAudioExtension(fileName string) (string, error) {
+	if "" == fileName {
+		err := errors.New("extension Invalid")
+		return "", err
+	}
+	stringSeparated := strings.Split(fileName, ".")
+	lastElement := len(stringSeparated) - 1
+	extension := make(map[string]bool)
+	extension["mp3"] = true
+	extension["midi"] = true
+	extension["wav"] = true
+	extension["wma"] = true
+
+	if _, ok := extension[stringSeparated[lastElement]]; !ok {
+		err := errors.New("extension Invalid")
+		return "", err
+	}
+
+	return stringSeparated[lastElement], nil
+}
+
 func (s *userService) Register(userRegister repo.UserDetail) (success bool, err error) {
 	success = false
 
@@ -233,6 +255,16 @@ func (s *userService) MakeProfile(token string, profile repo.UserDetail, genre r
 		}
 	})
 
+	fileId := uuid.Must(uuid.NewV4())
+	extension, errImage := getImageExtension(profile.AvatarUrl)
+	if errImage != nil {
+		err = errImage
+		log.Println(err)
+		return
+	}
+	generatedFileName := fileId.String() + "." + extension
+
+	profile.AvatarUrl = generatedFileName
 	genre.UserId = id
 	instrument.UserId = id
 
@@ -301,7 +333,7 @@ func (s *userService) UploadNewPost(token string, newPost repo.UserPost) (succes
 	postId := node.Generate().String()
 
 	fileId := uuid.Must(uuid.NewV4())
-	extension, errImage := getImageExtension(newPost.FileUrl)
+	extension, errImage := getAudioExtension(newPost.FileUrl)
 	if errImage != nil {
 		err = errImage
 		log.Println(err)
@@ -316,6 +348,35 @@ func (s *userService) UploadNewPost(token string, newPost repo.UserPost) (succes
 	success, err = s.userRepo.InsertNewPost(newPost)
 	if err != nil {
 		log.Println("Failed to post,", err)
+		return
+	}
+
+	return
+}
+
+func (s *userService) FollowUser(token string, userFollow repo.UserFollow) (success bool, err error){
+	success = false
+
+	var id string
+
+	at(time.Unix(0, 0), func() {
+		tokenClaims, err := jwt.ParseWithClaims(token, &Token{}, func(tokenClaims *jwt.Token) (interface{}, error) {
+			return []byte("IDKWhatThisIs"), nil
+		})
+
+		if claims, _ := tokenClaims.Claims.(*Token); claims.ExpiresAt > time.Now().Unix() {
+			id = claims.StandardClaims.Subject
+			log.Println(claims.Subject)
+		} else {
+			fmt.Println("token Invalid,    ", err)
+		}
+	})
+
+	userFollow.UserId = id
+
+	success, err = s.userRepo.InsertFollow(userFollow)
+	if err != nil {
+		log.Println("Failed to follow user:", err)
 		return
 	}
 

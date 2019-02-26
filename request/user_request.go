@@ -41,3 +41,8 @@ type NewPostRequest struct {
 type DeletePostRequest struct {
 	PostId string `json:"post_id"`
 }
+
+type FollowRequest struct {
+	UserId string `json:"user_id"`
+	FollowedId string `json:"followed_id"`
+}

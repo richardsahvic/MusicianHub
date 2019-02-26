@@ -23,6 +23,7 @@ type userRepository struct {
 	insertUserGenreStmt			*sqlx.NamedStmt
 	insertUserInstrumentStmt	*sqlx.NamedStmt
 	insertNewPostStmt			*sqlx.NamedStmt
+	insertNewFollowStmt			*sqlx.NamedStmt
 }
 
 func (db *userRepository) MustPrepareStmt(query string) *sqlx.Stmt {
@@ -58,6 +59,7 @@ func NewRepository(db *sqlx.DB) AppRepository {
 	r.insertUserGenreStmt = r.MustPrepareNamedStmt("INSERT INTO musiciandb.user_genre (user_id, genre_id) VALUES (:user_id, :genre_id)")
 	r.insertUserInstrumentStmt = r.MustPrepareNamedStmt("INSERT INTO musiciandb.user_instrument (user_id, instrument_id) VALUES (:user_id, :instrument_id)")
 	r.insertNewPostStmt = r.MustPrepareNamedStmt("INSERT INTO musiciandb.user_post (post_id, user_id, post_type, file_url, caption) VALUES (:post_id, :user_id, :post_type, :file_url, :caption)")
+	r.insertNewFollowStmt = r.MustPrepareNamedStmt("INSERT INTO musiciandb.user_follow (user_id, followed_id) VALUES (:user_id, :followed_id)")
 	return &r
 }
 
@@ -180,7 +182,18 @@ func (db *userRepository) DeletePost(postId string) (success bool, err error){
 	success = false
 	_, err = db.deletePostStmt.Exec(postId)
 	if err != nil {
-		log.Println("Failed to delete post:,", err)
+		log.Println("Failed to delete post:", err)
+		return
+	}
+	success = true
+	return
+}
+
+func (db *userRepository) InsertFollow(userFollow UserFollow) (success bool, err error){
+	success = false
+	_, err = db.insertNewFollowStmt.Exec(userFollow)
+	if err != nil {
+		log.Println("Failed to follow user:", err)
 		return
 	}
 	success = true
