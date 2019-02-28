@@ -382,3 +382,46 @@ func (s *userService) FollowUser(token string, userFollow repo.UserFollow) (succ
 
 	return
 }
+
+func (s *userService) ViewProfile(token string) (profile repo.UserDetail, following []repo.UserDetail, follower []repo.UserDetail, post []repo.UserPost, err error){
+	var id string
+
+	at(time.Unix(0, 0), func() {
+		tokenClaims, err := jwt.ParseWithClaims(token, &Token{}, func(tokenClaims *jwt.Token) (interface{}, error) {
+			return []byte("IDKWhatThisIs"), nil
+		})
+
+		if claims, _ := tokenClaims.Claims.(*Token); claims.ExpiresAt > time.Now().Unix() {
+			id = claims.StandardClaims.Subject
+			log.Println(claims.Subject)
+		} else {
+			fmt.Println("token Invalid,    ", err)
+		}
+	})
+
+	profile, err = s.userRepo.GetUserProfile(id)
+	if err != nil {
+		log.Println("Failed to get profile:", err)
+		return
+	}
+
+	following, err = s.userRepo.GetFollowing(id)
+	if err != nil {
+		log.Println("Failed to get following:", err)
+		return
+	}
+
+	follower, err = s.userRepo.GetFollower(id)
+	if err != nil {
+		log.Println("Failed to get follower:", err)
+		return
+	}
+
+	post, err = s.userRepo.GetUserPost(id)
+	if err != nil {
+		log.Println("Failed to get posts:", err)
+		return
+	}
+	
+	return
+}

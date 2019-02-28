@@ -269,3 +269,19 @@ func FollowUserHandler(w http.ResponseWriter, r *http.Request){
 
 	json.NewEncoder(w).Encode(followResp)
 }
+
+func ViewProfileHandler(w http.ResponseWriter, r *http.Request){
+	w.Header().Set("Content-Type", "application/json")
+	token := r.Header.Get("token")
+
+	profile, following, follower, posts, _ := userService.ViewProfile(token)
+
+	viewProfileResp := request.ViewProfileResponse{
+		Profile: profile,
+		Following: following,
+		Follower: follower,
+		Posts: posts,
+	}
+
+	json.NewEncoder(w).Encode(viewProfileResp)
+}

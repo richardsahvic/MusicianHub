@@ -40,15 +40,15 @@ type UserGenre struct{
 }
 
 type UserPost struct{
-	PostId	string `json:"post_id" db:"post_id"`
-	UserId string `json:"user_id" db:"user_id"`
-	PostType string `json:"post_type" db:"post_type"`
-	FileUrl string `json:"file_url" db:"file_url"`
-	Caption string `json:"caption" db:"caption"`
-	CreatedAt string `json:"created_at" db:"created_at"`
+	PostId		string `json:"post_id" db:"post_id"`
+	UserId 		string `json:"user_id" db:"user_id"`
+	PostType 	string `json:"post_type" db:"post_type"`
+	FileUrl 	string `json:"file_url" db:"file_url"`
+	Caption 	string `json:"caption" db:"caption"`
+	CreatedAt 	string `json:"created_at" db:"created_at"`
 }
 
 type UserFollow struct{
-	UserId string `json:"user_id" db:"user_id"`
-	FollowedId string `json:"followed_id" db:"followed_id"`
+	UserId 		string `json:"user_id" db:"user_id"`
+	FollowedId 	string `json:"followed_id" db:"followed_id"`
 }

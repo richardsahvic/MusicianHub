@@ -15,6 +15,7 @@ type UserService interface {
 	UploadNewPost(token string, newPost repo.UserPost) (bool, error)
 	DeletePost(postId string) (bool, error)
 	FollowUser(token string, userFollow repo.UserFollow) (bool, error)
+	ViewProfile(token string) (repo.UserDetail, []repo.UserDetail, []repo.UserDetail, []repo.UserPost, error)
 }
 
 var User UserService

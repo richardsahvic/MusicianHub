@@ -12,4 +12,8 @@ type AppRepository interface {
 	InsertNewPost(newPost UserPost) (bool, error)
 	DeletePost(postId string) (bool, error)
 	InsertFollow(userFollow UserFollow) (bool, error)
+	GetFollower(id string) ([]UserDetail, error)
+	GetFollowing(id string) ([]UserDetail, error)
+	GetUserPost(id string) ([]UserPost, error)
+	GetUserProfile(id string) (UserDetail, error)
 }

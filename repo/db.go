@@ -13,8 +13,13 @@ type userRepository struct {
 	findIDStmt                	*sqlx.Stmt
 	findEmailStmt             	*sqlx.Stmt
 	updatePasswordStmt        	*sqlx.Stmt
-	getGenre					*sqlx.Stmt
-	getInstrument				*sqlx.Stmt
+	getGenreStmt				*sqlx.Stmt
+	getInstrumentStmt			*sqlx.Stmt
+	getFollowerStmt				*sqlx.Stmt
+	getFollowingStmt			*sqlx.Stmt
+	getUserPostStmt				*sqlx.Stmt
+	getUserProfileStmt			*sqlx.Stmt
+	getFollowsDataStmt			*sqlx.Stmt
 	userProfileStmt				*sqlx.Stmt
 	updateUserGenreStmt			*sqlx.Stmt
 	updateUserInstrumentStmt	*sqlx.Stmt
@@ -51,8 +56,13 @@ func NewRepository(db *sqlx.DB) AppRepository {
 	r.updatePasswordStmt = r.MustPrepareStmt("UPDATE musiciandb.user_detail SET password=? WHERE id=?")
 	r.updateUserGenreStmt = r.MustPrepareStmt("UPDATE musiciandb.user_genre SET genre_id=? WHERE user_id=?")
 	r.updateUserInstrumentStmt = r.MustPrepareStmt("UPDATE musiciandb.user_instrument SET instrument_id=? WHERE user_id=?")
-	r.getGenre = r.MustPrepareStmt("SELECT * FROM musiciandb.genre_list")
-	r.getInstrument = r.MustPrepareStmt("SELECT * FROM musiciandb.instrument_list")
+	r.getGenreStmt = r.MustPrepareStmt("SELECT * FROM musiciandb.genre_list")
+	r.getInstrumentStmt = r.MustPrepareStmt("SELECT * FROM musiciandb.instrument_list")
+	r.getFollowingStmt = r.MustPrepareStmt("SELECT followed_id FROM musiciandb.user_follow WHERE user_id=?")
+	r.getFollowerStmt = r.MustPrepareStmt("SELECT user_id FROM musiciandb.user_follow WHERE followed_id=?")
+	r.getUserPostStmt = r.MustPrepareStmt("SELECT * FROM musiciandb.user_post WHERE user_id=?")
+	r.getUserProfileStmt = r.MustPrepareStmt("SELECT name, email, gender, birthdate, bio, avatar_url FROM musiciandb.user_detail WHERE id=?")
+	r.getFollowsDataStmt = r.MustPrepareStmt("SELECT name, avatar_url FROM musiciandb.user_detail WHERE id=?")
 	r.deletePostStmt = r.MustPrepareStmt("DELETE FROM musiciandb.user_post WHERE post_id=?")
 	r.userProfileStmt = r.MustPrepareStmt("UPDATE musiciandb.user_detail SET name=?, gender=?, birthdate=?, bio=?, avatar_url=? WHERE id=?")
 	r.insertNewUserStmt = r.MustPrepareNamedStmt("INSERT INTO musiciandb.user_detail (id, email, password) VALUES (:id, :email, :password)")
@@ -102,7 +112,7 @@ func (db *userRepository) UpdatePassword(id string, newPassword string) (success
 }
 
 func (db *userRepository) GetGenres() (genres []GenreList, err error) {
-	err = db.getGenre.Select(&genres)
+	err = db.getGenreStmt.Select(&genres)
 	if err != nil{
 		log.Println("Failed to get genres: ", err)
 	}
@@ -110,7 +120,7 @@ func (db *userRepository) GetGenres() (genres []GenreList, err error) {
 }
 
 func (db *userRepository) GetInstruments() (instruments []InstrumentList, err error) {
-	err = db.getInstrument.Select(&instruments)
+	err = db.getInstrumentStmt.Select(&instruments)
 	if err != nil{
 		log.Println("Failed to get instruments: ", err)
 	}
@@ -197,5 +207,53 @@ func (db *userRepository) InsertFollow(userFollow UserFollow) (success bool, err
 		return
 	}
 	success = true
+	return
+}
+
+func (db *userRepository) GetFollower(id string) (follower []UserDetail, err error){
+	var followerId []string
+
+	err = db.getFollowerStmt.Get(&followerId, id)
+	if err != nil {
+		log.Println("Failed to get follower:", err)
+		return
+	}
+
+	err = db.getFollowsDataStmt.Get(&follower, id)
+	if err != nil {
+		log.Println("Failed to get follower's data:", err)
+	}
+	return
+}
+
+func (db *userRepository) GetFollowing(id string) (following []UserDetail, err error){
+	var followingId []string
+
+	err = db.getFollowingStmt.Get(&followingId, id)
+	if err != nil{
+		log.Println("Failed to get following:", err)
+		return
+	}
+
+	err = db.getFollowsDataStmt.Get(&following, id)
+	if err != nil {
+		log.Println("Failed to get following's data:", err)
+	}
+	return
+}
+
+func (db *userRepository) GetUserPost(id string) (posts []UserPost, err error){
+	err = db.getUserPostStmt.Get(&posts, id)
+	if err != nil {
+		log.Println("Failed to get posts:", err)
+	}
+	return
+}
+
+func (db *userRepository) GetUserProfile(id string) (profile UserDetail, err error){
+	err = db.getUserProfileStmt.Get(&profile, id)
+	if err != nil {
+		log.Println("Failed to get profile:", err)
+	}
 	return
 }
