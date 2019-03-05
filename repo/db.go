@@ -58,11 +58,10 @@ func NewRepository(db *sqlx.DB) AppRepository {
 	r.updateUserInstrumentStmt = r.MustPrepareStmt("UPDATE musiciandb.user_instrument SET instrument_id=? WHERE user_id=?")
 	r.getGenreStmt = r.MustPrepareStmt("SELECT * FROM musiciandb.genre_list")
 	r.getInstrumentStmt = r.MustPrepareStmt("SELECT * FROM musiciandb.instrument_list")
-	r.getFollowingStmt = r.MustPrepareStmt("SELECT followed_id FROM musiciandb.user_follow WHERE user_id=?")
-	r.getFollowerStmt = r.MustPrepareStmt("SELECT user_id FROM musiciandb.user_follow WHERE followed_id=?")
+	r.getFollowingStmt = r.MustPrepareStmt("SELECT d.id, d.name, d.avatar_url FROM user_follow f INNER JOIN user_detail d ON f.followed_id=d.id WHERE f.user_id=?;")
+	r.getFollowerStmt = r.MustPrepareStmt("SELECT d.id, d.name, d.avatar_url FROM user_follow f INNER JOIN user_detail d ON f.user_id=d.id WHERE f.followed_id=?;")
 	r.getUserPostStmt = r.MustPrepareStmt("SELECT * FROM musiciandb.user_post WHERE user_id=?")
 	r.getUserProfileStmt = r.MustPrepareStmt("SELECT name, email, gender, birthdate, bio, avatar_url FROM musiciandb.user_detail WHERE id=?")
-	r.getFollowsDataStmt = r.MustPrepareStmt("SELECT name, avatar_url FROM musiciandb.user_detail WHERE id=?")
 	r.deletePostStmt = r.MustPrepareStmt("DELETE FROM musiciandb.user_post WHERE post_id=?")
 	r.userProfileStmt = r.MustPrepareStmt("UPDATE musiciandb.user_detail SET name=?, gender=?, birthdate=?, bio=?, avatar_url=? WHERE id=?")
 	r.insertNewUserStmt = r.MustPrepareNamedStmt("INSERT INTO musiciandb.user_detail (id, email, password) VALUES (:id, :email, :password)")
@@ -211,39 +210,23 @@ func (db *userRepository) InsertFollow(userFollow UserFollow) (success bool, err
 }
 
 func (db *userRepository) GetFollower(id string) (follower []UserDetail, err error){
-	var followerId []string
-
-	err = db.getFollowerStmt.Get(&followerId, id)
+	err = db.getFollowerStmt.Select(&follower, id)
 	if err != nil {
 		log.Println("Failed to get follower:", err)
-		return
-	}
-
-	err = db.getFollowsDataStmt.Get(&follower, id)
-	if err != nil {
-		log.Println("Failed to get follower's data:", err)
 	}
 	return
 }
 
 func (db *userRepository) GetFollowing(id string) (following []UserDetail, err error){
-	var followingId []string
-
-	err = db.getFollowingStmt.Get(&followingId, id)
+	err = db.getFollowingStmt.Select(&following, id)
 	if err != nil{
 		log.Println("Failed to get following:", err)
-		return
-	}
-
-	err = db.getFollowsDataStmt.Get(&following, id)
-	if err != nil {
-		log.Println("Failed to get following's data:", err)
 	}
 	return
 }
 
 func (db *userRepository) GetUserPost(id string) (posts []UserPost, err error){
-	err = db.getUserPostStmt.Get(&posts, id)
+	err = db.getUserPostStmt.Select(&posts, id)
 	if err != nil {
 		log.Println("Failed to get posts:", err)
 	}

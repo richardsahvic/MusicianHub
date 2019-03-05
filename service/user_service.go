@@ -56,7 +56,7 @@ func CheckPasswordHash(password, hash string) (match bool, err error){
 }
 
 // check image's extension
-func getImageExtension(fileName string) (string, error) {
+func getFileExtension(fileName string) (string, error) {
 	if "" == fileName {
 		err := errors.New("extension Invalid")
 		return "", err
@@ -67,28 +67,16 @@ func getImageExtension(fileName string) (string, error) {
 	extension["jpg"] = true
 	extension["png"] = true
 	extension["jpeg"] = true
-
-	if _, ok := extension[stringSeparated[lastElement]]; !ok {
-		err := errors.New("extension Invalid")
-		return "", err
-	}
-
-	return stringSeparated[lastElement], nil
-}
-
-// check audio's extension
-func getAudioExtension(fileName string) (string, error) {
-	if "" == fileName {
-		err := errors.New("extension Invalid")
-		return "", err
-	}
-	stringSeparated := strings.Split(fileName, ".")
-	lastElement := len(stringSeparated) - 1
-	extension := make(map[string]bool)
 	extension["mp3"] = true
 	extension["midi"] = true
 	extension["wav"] = true
 	extension["wma"] = true
+	extension["mp4"] = true
+	extension["mpeg"] = true
+	extension["avi"] = true
+	extension["3gp"] = true
+	extension["mov"] = true
+	extension["wmv"] = true
 
 	if _, ok := extension[stringSeparated[lastElement]]; !ok {
 		err := errors.New("extension Invalid")
@@ -256,7 +244,7 @@ func (s *userService) MakeProfile(token string, profile repo.UserDetail, genre r
 	})
 
 	fileId := uuid.Must(uuid.NewV4())
-	extension, errImage := getImageExtension(profile.AvatarUrl)
+	extension, errImage := getFileExtension(profile.AvatarUrl)
 	if errImage != nil {
 		err = errImage
 		log.Println(err)
@@ -333,7 +321,7 @@ func (s *userService) UploadNewPost(token string, newPost repo.UserPost) (succes
 	postId := node.Generate().String()
 
 	fileId := uuid.Must(uuid.NewV4())
-	extension, errImage := getAudioExtension(newPost.FileUrl)
+	extension, errImage := getFileExtension(newPost.FileUrl)
 	if errImage != nil {
 		err = errImage
 		log.Println(err)
