@@ -16,6 +16,7 @@ type UserService interface {
 	DeletePost(postId string) (bool, error)
 	FollowUser(token string, userFollow repo.UserFollow) (bool, error)
 	ViewProfile(token string) (repo.UserDetail, []repo.UserDetail, []repo.UserDetail, []repo.UserPost, error)
+	Timeline(token string) ([]repo.UserPost, error)
 }
 
 var User UserService

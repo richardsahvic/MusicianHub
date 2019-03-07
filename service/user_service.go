@@ -413,3 +413,34 @@ func (s *userService) ViewProfile(token string) (profile repo.UserDetail, follow
 	
 	return
 }
+
+func (s *userService) Timeline(token string) (posts []repo.UserPost, err error){
+	var id string
+
+	at(time.Unix(0, 0), func() {
+		tokenClaims, err := jwt.ParseWithClaims(token, &Token{}, func(tokenClaims *jwt.Token) (interface{}, error) {
+			return []byte("IDKWhatThisIs"), nil
+		})
+
+		if claims, _ := tokenClaims.Claims.(*Token); claims.ExpiresAt > time.Now().Unix() {
+			id = claims.StandardClaims.Subject
+			log.Println(claims.Subject)
+		} else {
+			fmt.Println("token Invalid,    ", err)
+		}
+	})
+
+	followedIds, err := s.userRepo.GetFollowedId(id)
+	if err != nil {
+		log.Println("Failed to get followed id:", err)
+		return
+	}
+
+	posts, err = s.userRepo.GetRelatedPost(followedIds)
+	if err != nil {
+		log.Println("Failed to get related post:", err)
+		return
+	}
+
+	return
+}

@@ -19,5 +19,6 @@ func Routes() *mux.Router{
 	route.HandleFunc("/deletepost", handler.DeletePostHandler).Methods("POST")
 	route.HandleFunc("/followuser", handler.FollowUserHandler).Methods("POST")
 	route.HandleFunc("/viewprofile", handler.ViewProfileHandler).Methods("GET")
+	route.HandleFunc("/timeline", handler.TimelineHandler).Methods("GET")
 	return route
 }

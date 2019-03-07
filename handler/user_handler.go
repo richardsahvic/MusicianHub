@@ -285,3 +285,12 @@ func ViewProfileHandler(w http.ResponseWriter, r *http.Request){
 
 	json.NewEncoder(w).Encode(viewProfileResp)
 }
+
+func TimelineHandler(w http.ResponseWriter, r *http.Request){
+	w.Header().Set("Content-Type", "application/json")
+	token := r.Header.Get("token")
+
+	posts, _ := userService.Timeline(token)
+
+	json.NewEncoder(w).Encode(posts)
+}

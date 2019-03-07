@@ -16,4 +16,6 @@ type AppRepository interface {
 	GetFollowing(id string) ([]UserDetail, error)
 	GetUserPost(id string) ([]UserPost, error)
 	GetUserProfile(id string) (UserDetail, error)
+	GetFollowedId(id string) (string, error)
+	GetRelatedPost(id string) ([]UserPost, error)
 }

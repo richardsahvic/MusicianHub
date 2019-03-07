@@ -17,6 +17,8 @@ type userRepository struct {
 	getInstrumentStmt			*sqlx.Stmt
 	getFollowerStmt				*sqlx.Stmt
 	getFollowingStmt			*sqlx.Stmt
+	getFollowedIdStmt			*sqlx.Stmt
+	getRelatedPostStmt			*sqlx.Stmt
 	getUserPostStmt				*sqlx.Stmt
 	getUserProfileStmt			*sqlx.Stmt
 	getFollowsDataStmt			*sqlx.Stmt
@@ -58,8 +60,10 @@ func NewRepository(db *sqlx.DB) AppRepository {
 	r.updateUserInstrumentStmt = r.MustPrepareStmt("UPDATE musiciandb.user_instrument SET instrument_id=? WHERE user_id=?")
 	r.getGenreStmt = r.MustPrepareStmt("SELECT * FROM musiciandb.genre_list")
 	r.getInstrumentStmt = r.MustPrepareStmt("SELECT * FROM musiciandb.instrument_list")
-	r.getFollowingStmt = r.MustPrepareStmt("SELECT d.id, d.name, d.avatar_url FROM user_follow f INNER JOIN user_detail d ON f.followed_id=d.id WHERE f.user_id=?;")
-	r.getFollowerStmt = r.MustPrepareStmt("SELECT d.id, d.name, d.avatar_url FROM user_follow f INNER JOIN user_detail d ON f.user_id=d.id WHERE f.followed_id=?;")
+	r.getFollowedIdStmt = r.MustPrepareStmt("SELECT followed_id FROM musiciandb.user_follow WHERE user_id=?")
+	r.getRelatedPostStmt = r.MustPrepareStmt("SELECT * FROM musiciandb.user_post WHERE user_id IN (?) ORDER BY created_at DESC")
+	r.getFollowingStmt = r.MustPrepareStmt("SELECT d.id, d.name, d.avatar_url FROM user_follow f INNER JOIN user_detail d ON f.followed_id=d.id WHERE f.user_id=?")
+	r.getFollowerStmt = r.MustPrepareStmt("SELECT d.id, d.name, d.avatar_url FROM user_follow f INNER JOIN user_detail d ON f.user_id=d.id WHERE f.followed_id=?")
 	r.getUserPostStmt = r.MustPrepareStmt("SELECT * FROM musiciandb.user_post WHERE user_id=?")
 	r.getUserProfileStmt = r.MustPrepareStmt("SELECT name, email, gender, birthdate, bio, avatar_url FROM musiciandb.user_detail WHERE id=?")
 	r.deletePostStmt = r.MustPrepareStmt("DELETE FROM musiciandb.user_post WHERE post_id=?")
@@ -237,6 +241,31 @@ func (db *userRepository) GetUserProfile(id string) (profile UserDetail, err err
 	err = db.getUserProfileStmt.Get(&profile, id)
 	if err != nil {
 		log.Println("Failed to get profile:", err)
+	}
+	return
+}
+
+func (db *userRepository) GetFollowedId(id string) (followedId string, err error){
+	var followedIds []string
+
+	err = db.getFollowedIdStmt.Select(&followedIds, id)
+	if err != nil {
+		log.Println("Failed to get followed id:", err)
+		return
+	}
+
+	// for i := range followedIds{
+	// 	if i 
+	// }
+
+
+	return
+}
+
+func (db *userRepository) GetRelatedPost(id string) (posts []UserPost, err error){
+	err = db.getRelatedPostStmt.Select(&posts, id)
+	if err != nil {
+		log.Println("Failed to get related posts:", err)
 	}
 	return
 }
