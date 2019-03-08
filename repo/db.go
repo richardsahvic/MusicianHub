@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/jmoiron/sqlx"
+	sqlx "github.com/jmoiron/sqlx"
 )
 
 type userRepository struct {
@@ -245,27 +245,46 @@ func (db *userRepository) GetUserProfile(id string) (profile UserDetail, err err
 	return
 }
 
-func (db *userRepository) GetFollowedId(id string) (followedId string, err error){
-	var followedIds []string
+func (db *userRepository) GetFollowedId(id string) (followedId []string, err error){
+	var tempFollowedIds []string
 
-	err = db.getFollowedIdStmt.Select(&followedIds, id)
+	err = db.getFollowedIdStmt.Select(&tempFollowedIds, id)
 	if err != nil {
 		log.Println("Failed to get followed id:", err)
 		return
 	}
 
-	// for i := range followedIds{
-	// 	if i 
-	// }
+	tempidsLength := len(tempFollowedIds)
+	idsLength := tempidsLength + 1
 
+	followedId = make([]string, 0, idsLength) 
+
+	for i := range followedId {
+		if i + 1 != idsLength {
+			followedId[i] = tempFollowedIds[i]
+		}else if i + 1 == idsLength {
+			followedId[i] = id
+		}
+	}
 
 	return
 }
 
-func (db *userRepository) GetRelatedPost(id string) (posts []UserPost, err error){
-	err = db.getRelatedPostStmt.Select(&posts, id)
+func (db *userRepository) GetRelatedPost(id []string) (posts []UserPost, err error){
+	query, _, err := sqlx.In("SELECT * FROM musiciandb.user_post WHERE user_id IN (?) ORDER BY created_at DESC;", id)
 	if err != nil {
-		log.Println("Failed to get related posts:", err)
+		log.Println("Failed to get related post:", err)
+		return
+	}else {
+		query = db.conn.Rebind(query)
+		rows, err := db.conn.Queryx(query)
+		for rows.Next() {
+			err = rows.StructScan(&posts)
+			if err != nil {
+				log.Fatalln(err)
+			}
+		}
 	}
+	
 	return
 }
