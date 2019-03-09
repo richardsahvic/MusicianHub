@@ -257,7 +257,7 @@ func (db *userRepository) GetFollowedId(id string) (followedId []string, err err
 	tempidsLength := len(tempFollowedIds)
 	idsLength := tempidsLength + 1
 
-	followedId = make([]string, 0, idsLength) 
+	followedId = make([]string, idsLength, idsLength)
 
 	for i := range followedId {
 		if i + 1 != idsLength {
@@ -265,19 +265,24 @@ func (db *userRepository) GetFollowedId(id string) (followedId []string, err err
 		}else if i + 1 == idsLength {
 			followedId[i] = id
 		}
+		// log.Println(followedId[i], i)
 	}
 
 	return
 }
 
 func (db *userRepository) GetRelatedPost(id []string) (posts []UserPost, err error){
-	query, _, err := sqlx.In("SELECT * FROM musiciandb.user_post WHERE user_id IN (?) ORDER BY created_at DESC;", id)
+	query, args, err := sqlx.In("SELECT * FROM musiciandb.user_post WHERE user_id IN (?) ORDER BY created_at DESC;", id)
 	if err != nil {
 		log.Println("Failed to get related post:", err)
 		return
 	}else {
 		query = db.conn.Rebind(query)
-		rows, err := db.conn.Queryx(query)
+		rows, err2 := db.conn.Queryx(query, args)
+		if err2 != nil {
+			log.Fatalln(err2)
+			return
+		}
 		for rows.Next() {
 			err = rows.StructScan(&posts)
 			if err != nil {
