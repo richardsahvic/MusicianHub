@@ -18,7 +18,6 @@ type userRepository struct {
 	getFollowerStmt				*sqlx.Stmt
 	getFollowingStmt			*sqlx.Stmt
 	getFollowedIdStmt			*sqlx.Stmt
-	getRelatedPostStmt			*sqlx.Stmt
 	getUserPostStmt				*sqlx.Stmt
 	getUserProfileStmt			*sqlx.Stmt
 	getFollowsDataStmt			*sqlx.Stmt
@@ -61,7 +60,6 @@ func NewRepository(db *sqlx.DB) AppRepository {
 	r.getGenreStmt = r.MustPrepareStmt("SELECT * FROM musiciandb.genre_list")
 	r.getInstrumentStmt = r.MustPrepareStmt("SELECT * FROM musiciandb.instrument_list")
 	r.getFollowedIdStmt = r.MustPrepareStmt("SELECT followed_id FROM musiciandb.user_follow WHERE user_id=?")
-	r.getRelatedPostStmt = r.MustPrepareStmt("SELECT * FROM musiciandb.user_post WHERE user_id IN (?) ORDER BY created_at DESC")
 	r.getFollowingStmt = r.MustPrepareStmt("SELECT d.id, d.name, d.avatar_url FROM user_follow f INNER JOIN user_detail d ON f.followed_id=d.id WHERE f.user_id=?")
 	r.getFollowerStmt = r.MustPrepareStmt("SELECT d.id, d.name, d.avatar_url FROM user_follow f INNER JOIN user_detail d ON f.user_id=d.id WHERE f.followed_id=?")
 	r.getUserPostStmt = r.MustPrepareStmt("SELECT * FROM musiciandb.user_post WHERE user_id=?")
@@ -265,30 +263,43 @@ func (db *userRepository) GetFollowedId(id string) (followedId []string, err err
 		}else if i + 1 == idsLength {
 			followedId[i] = id
 		}
-		// log.Println(followedId[i], i)
 	}
 
 	return
 }
 
 func (db *userRepository) GetRelatedPost(id []string) (posts []UserPost, err error){
+	var tempPost UserPost
+	i := 0
+
 	query, args, err := sqlx.In("SELECT * FROM musiciandb.user_post WHERE user_id IN (?) ORDER BY created_at DESC;", id)
 	if err != nil {
 		log.Println("Failed to get related post:", err)
 		return
-	}else {
-		query = db.conn.Rebind(query)
-		rows, err2 := db.conn.Queryx(query, args)
-		if err2 != nil {
-			log.Fatalln(err2)
-			return
+	}
+	query = db.conn.Rebind(query)
+
+	rows, err2 := db.conn.Queryx(query, args...)
+	if err2 != nil {
+		log.Fatalln(err2)
+		return
+	}
+
+	for rows.Next() {
+		i++
+		err = rows.StructScan(&tempPost)
+		log.Println(tempPost)
+	}
+
+	posts = make([]UserPost, i, i)
+
+	for x := 0; x < i; x++ {
+		err = rows.StructScan(&tempPost)
+		if err != nil {
+			log.Fatalln(err)
 		}
-		for rows.Next() {
-			err = rows.StructScan(&posts)
-			if err != nil {
-				log.Fatalln(err)
-			}
-		}
+		log.Println(tempPost)
+		posts[x] = tempPost
 	}
 	
 	return
